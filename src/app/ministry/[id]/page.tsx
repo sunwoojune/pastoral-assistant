@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { SermonContent } from '@/types/ministry-content'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default function MinistryContentPage({ params }: Props) {
+export default async function MinistryContentPage({ params }: Props) {
+  const resolvedParams = await params
   const [content, setContent] = useState<SermonContent | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'summary' | 'quiz' | 'meditation'>('summary')
@@ -16,7 +17,7 @@ export default function MinistryContentPage({ params }: Props) {
 
   useEffect(() => {
     loadContent()
-  }, [params.id])
+  }, [resolvedParams.id])
 
   const loadContent = () => {
     try {
@@ -24,7 +25,7 @@ export default function MinistryContentPage({ params }: Props) {
       const stored = localStorage.getItem('shepherd-care-ministry-sermons')
       if (stored) {
         const sermons = JSON.parse(stored)
-        const sermon = sermons.find((s: SermonContent) => s.id === params.id)
+        const sermon = sermons.find((s: SermonContent) => s.id === resolvedParams.id)
         
         if (sermon) {
           setContent(sermon)
@@ -33,7 +34,7 @@ export default function MinistryContentPage({ params }: Props) {
           const basicStored = localStorage.getItem('shepherd-care-sermons')
           if (basicStored) {
             const basicSermons = JSON.parse(basicStored)
-            const basicSermon = basicSermons.find((s: any) => s.id === params.id)
+            const basicSermon = basicSermons.find((s: any) => s.id === resolvedParams.id)
             
             if (basicSermon) {
               // 기본 설교를 ministry content 형식으로 변환
