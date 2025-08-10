@@ -23,8 +23,8 @@ const DEFAULT_MAPPINGS: ColumnMapping = {
   '전화번호': 'phone',
   '휴대폰': 'phone',
   '핸드폰': 'phone',
-  '생년월일': 'date_of_birth',
-  '생일': 'date_of_birth',
+  '생년월일': 'birth_date',
+  '생일': 'birth_date',
   '성별': 'gender',
   '주소': 'address',
   '직분': 'roles',
@@ -152,7 +152,7 @@ export default function MemberImportPage() {
           member[field] = value.split(',').map(v => v.trim()).filter(Boolean)
         } else if (field === 'gender') {
           member[field] = value === '남' || value === 'M' ? 'male' : 'female'
-        } else if (field === 'date_of_birth') {
+        } else if (field === 'birth_date') {
           // 날짜 형식 정규화
           const dateValue = value.replace(/[.\-/]/g, '-')
           if (dateValue.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
@@ -213,7 +213,7 @@ export default function MemberImportPage() {
             member[field] = value.split(',').map(v => v.trim()).filter(Boolean)
           } else if (field === 'gender') {
             member[field] = value === '남' || value === 'M' ? 'male' : 'female'
-          } else if (field === 'date_of_birth') {
+          } else if (field === 'birth_date') {
             const dateValue = value.replace(/[.\-/]/g, '-')
             if (dateValue.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
               member[field] = dateValue
@@ -369,7 +369,7 @@ export default function MemberImportPage() {
                     <option value="skip">건너뛰기</option>
                     <option value="name">이름</option>
                     <option value="phone">전화번호</option>
-                    <option value="date_of_birth">생년월일</option>
+                    <option value="birth_date">생년월일</option>
                     <option value="gender">성별</option>
                     <option value="address">주소</option>
                     <option value="email">이메일</option>
@@ -433,7 +433,7 @@ export default function MemberImportPage() {
                       {member.phone || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {member.date_of_birth || '-'}
+                      {member.birth_date || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {member.groups?.join(', ') || '-'}
