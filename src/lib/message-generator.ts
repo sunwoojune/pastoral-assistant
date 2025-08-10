@@ -43,7 +43,7 @@ export const generateWeeklyMessages = (sermon: SermonContent): MessageContent[] 
     sendDate.setHours(template.schedule.hour, template.schedule.minute, 0, 0)
 
     // 각 템플릿별 특화 변수
-    let specificVariables = { ...baseVariables }
+    let specificVariables: any = { ...baseVariables }
     
     switch (template.type) {
       case 'monday':
