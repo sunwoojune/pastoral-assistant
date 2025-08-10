@@ -6,6 +6,7 @@ export interface Member {
   phone: string
   email?: string
   birth_date?: string // YYYY-MM-DD
+  gender?: 'male' | 'female'
   
   // 교회 정보
   baptism_date?: string
@@ -27,6 +28,7 @@ export interface Member {
   
   // 목회 관련
   groups: string[] // 소속 그룹들 (청년부, 성가대 등)
+  roles?: string[] // 교회 내 역할들 (장로, 집사, 교사 등)
   care_notes?: string // 돌봄 메모
   prayer_requests?: string[] // 기도 제목들
   
@@ -73,10 +75,12 @@ export interface MemberFormData {
   phone: string
   email?: string
   birth_date?: string
+  gender?: 'male' | 'female'
   department?: Department
   position?: Position
   address?: string
   groups: string[]
+  roles?: string[]
   message_settings: {
     receive_sermon_summary: boolean
     receive_meditation: boolean
