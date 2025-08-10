@@ -230,8 +230,8 @@ export const messageQueue = {
       created_at: new Date().toISOString(),
       status: 'PENDING',
       retry_count: 0,
-      max_retries: 3,
-      ...item
+      ...item,
+      max_retries: item.max_retries || 3
     }
 
     // localStorage에 저장
