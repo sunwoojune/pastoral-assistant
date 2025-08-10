@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { processSermonWithAI } from '@/lib/openai'
 import { SermonContent } from '@/types/ministry-content'
+import { MessageQueueItem } from '@/types/kakao-api'
 
 export default function NewSermonPage() {
   const router = useRouter()
@@ -79,11 +80,11 @@ export default function NewSermonPage() {
       saveScheduledMessages(weeklyMessages)
       
       console.log(`✅ 주간 메시지 ${weeklyMessages.length}개가 예약되었습니다.`)
-      console.log('📅 발송 예정:', weeklyMessages.map(msg => ({
-        type: msg.template_id,
+      console.log('📅 발송 예정:', weeklyMessages.map((msg: MessageQueueItem) => ({
+        type: msg.template_code,
         date: new Date(msg.scheduled_time).toLocaleDateString('ko-KR'),
-        recipients: weeklyMessages.filter(m => m.template_id === msg.template_id).length
-      }).filter((item, index, arr) => arr.findIndex(i => i.type === item.type) === index)))
+        recipients: weeklyMessages.filter((m: MessageQueueItem) => m.template_code === msg.template_code).length
+      })).filter((item, index, arr) => arr.findIndex(i => i.type === item.type) === index))
     } catch (error) {
       console.error('주간 메시지 생성 오류:', error)
     }
