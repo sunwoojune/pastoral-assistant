@@ -95,13 +95,21 @@ export default function MessageDashboardPage() {
   }
 
   // 통계 계산
-  const totalStats = Object.values(sendingStats).reduce((total: any, dayStats: any) => ({
+  interface StatsTotal {
+    sent: number
+    delivered: number
+    read: number
+    failed: number
+    cost: number
+  }
+
+  const totalStats: StatsTotal = Object.values(sendingStats).reduce<StatsTotal>((total, dayStats: any) => ({
     sent: (total.sent || 0) + (dayStats.total_sent || 0),
     delivered: (total.delivered || 0) + (dayStats.total_delivered || 0),
     read: (total.read || 0) + (dayStats.total_read || 0),
     failed: (total.failed || 0) + (dayStats.total_failed || 0),
     cost: (total.cost || 0) + (dayStats.total_cost || 0)
-  }), {})
+  }), { sent: 0, delivered: 0, read: 0, failed: 0, cost: 0 })
 
   const getStatusColor = (status: MessageQueueItem['status']) => {
     const colors = {
