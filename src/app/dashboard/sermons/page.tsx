@@ -62,7 +62,7 @@ export default function SermonsPage() {
           </p>
         </div>
         <Link
-          href="/sermons/new"
+          href="/dashboard/sermons/new"
           className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors duration-200"
         >
           새 설교 추가
@@ -95,7 +95,7 @@ export default function SermonsPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">설교가 없습니다</h3>
             <p className="text-gray-600 mb-4">첫 번째 설교를 추가해보세요.</p>
             <Link
-              href="/sermons/new"
+              href="/dashboard/sermons/new"
               className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors duration-200"
             >
               설교 추가하기
@@ -112,7 +112,7 @@ export default function SermonsPage() {
                         <div>
                           <h3 className="text-lg font-medium text-primary-600">
                             <Link 
-                              href={`/sermons/${sermon.id}`}
+                              href={`/dashboard/sermons/${sermon.id}`}
                               className="hover:text-primary-700"
                             >
                               {sermon.title}
@@ -156,7 +156,7 @@ export default function SermonsPage() {
 
                     <div className="ml-4 flex items-center space-x-2">
                       <Link
-                        href={`/sermons/${sermon.id}/edit`}
+                        href={`/dashboard/sermons/${sermon.id}/edit`}
                         className="text-gray-400 hover:text-gray-600"
                         title="수정"
                       >

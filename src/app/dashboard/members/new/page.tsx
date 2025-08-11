@@ -93,7 +93,7 @@ export default function NewMemberPage() {
       const newMember = memberStorage.create(formData)
       
       alert(`${newMember.name}님이 교인으로 등록되었습니다.`)
-      router.push('/members')
+      router.push('/dashboard/members')
     } catch (error) {
       console.error('교인 등록 오류:', error)
       alert('교인 등록 중 오류가 발생했습니다.')
@@ -317,7 +317,7 @@ export default function NewMemberPage() {
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={() => router.push('/members')}
+            onClick={() => router.push('/dashboard/members')}
             className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors duration-200"
           >
             취소

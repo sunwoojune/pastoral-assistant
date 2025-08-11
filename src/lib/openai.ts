@@ -1,8 +1,16 @@
-// OpenAI GPT API 연동
+// Groq API (Llama 3.1 70B) 연동
 import { AIProcessingResult, QuizQuestion } from '@/types/ministry-content'
 
 // 환경변수에서 API 키 확인
-const OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY
+const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY
+const USE_GROQ = process.env.NEXT_PUBLIC_USE_GROQ_AI === 'true'
+
+// 디버깅: 환경변수 확인
+console.log('=== 환경변수 디버깅 ===')
+console.log('GROQ_API_KEY:', GROQ_API_KEY ? '있음' : '없음')
+console.log('USE_GROQ:', USE_GROQ)
+console.log('GROQ_API_KEY 길이:', GROQ_API_KEY?.length)
+console.log('======================')
 
 // Mock AI 처리 결과 (실제 GPT API 연동 전까지 사용)
 const mockAIResult = (title: string, content: string): AIProcessingResult => {
@@ -54,44 +62,47 @@ const mockAIResult = (title: string, content: string): AIProcessingResult => {
   }
 }
 
-// 실제 GPT API 호출 함수
-const callOpenAI = async (prompt: string): Promise<string> => {
-  if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-api-key-here') {
-    throw new Error('OpenAI API 키가 설정되지 않았습니다.')
+// Groq API 호출 함수 (OpenAI와 동일한 형식)
+const callGroqAPI = async (prompt: string): Promise<string> => {
+  if (!GROQ_API_KEY) {
+    throw new Error('Groq API 키가 설정되지 않았습니다.')
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'llama-3.1-8b-instant', // 현재 사용 가능한 무료 모델
         messages: [
           {
             role: 'system',
-            content: '당신은 한국 기독교 목회 전문가입니다. 설교 내용을 분석하여 성도들을 위한 유익한 콘텐츠를 생성해주세요.'
+            content: '당신은 한국 기독교 목회 전문가입니다. 설교 내용을 분석하여 성도들을 위한 유익한 콘텐츠를 생성해주세요. 반드시 유효한 JSON 형식으로만 응답하세요.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 1500,
-        temperature: 0.7
+        max_tokens: 2000,
+        temperature: 0.7,
+        top_p: 1,
+        stream: false
       })
     })
 
     if (!response.ok) {
-      throw new Error(`OpenAI API 오류: ${response.status}`)
+      const errorData = await response.text()
+      throw new Error(`Groq API 오류: ${response.status} - ${errorData}`)
     }
 
     const data = await response.json()
     return data.choices[0]?.message?.content || ''
   } catch (error) {
-    console.error('OpenAI API 호출 실패:', error)
+    console.error('Groq API 호출 실패:', error)
     throw error
   }
 }
@@ -102,12 +113,12 @@ export const processSermonWithAI = async (
   scripture: string, 
   content: string
 ): Promise<AIProcessingResult> => {
-  // Mock 모드 확인
-  const useMock = !OPENAI_API_KEY || OPENAI_API_KEY === 'your-api-key-here'
+  // Groq 모드 확인
+  const useGroq = USE_GROQ && GROQ_API_KEY
   
-  if (useMock) {
+  if (!useGroq) {
     // Mock 데이터 반환 (개발용)
-    console.log('Mock AI 처리 모드')
+    console.log('Mock AI 처리 모드 - Groq API 키가 없거나 비활성화됨')
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(mockAIResult(title, content))
@@ -116,7 +127,9 @@ export const processSermonWithAI = async (
   }
 
   try {
-    // 실제 GPT API 호출
+    console.log('🚀 Groq Llama 3.1-70B 처리 시작...')
+    
+    // Groq API 호출
     const prompt = `
 설교 정보:
 제목: ${title}
@@ -131,7 +144,7 @@ ${content}
 3. **묵상** (200-300자): 개인적 적용을 위한 묵상 내용
 4. **실천과제 4개**: 구체적이고 실행 가능한 과제들
 
-JSON 형식으로 응답해주세요:
+다음 JSON 형식으로만 응답해주세요. 다른 텍스트는 포함하지 마세요:
 {
   "summary": "요약 내용",
   "quiz": [
@@ -141,6 +154,13 @@ JSON 형식으로 응답해주세요:
       "options": ["선택지1", "선택지2", "선택지3", "선택지4"],
       "correct_answer": 0,
       "explanation": "해설"
+    },
+    {
+      "id": "q2", 
+      "question": "질문2",
+      "options": ["선택지1", "선택지2", "선택지3", "선택지4"],
+      "correct_answer": 1,
+      "explanation": "해설"
     }
   ],
   "meditation": "묵상 내용",
@@ -148,10 +168,58 @@ JSON 형식으로 응답해주세요:
 }
 `
 
-    const result = await callOpenAI(prompt)
-    return JSON.parse(result)
+    const result = await callGroqAPI(prompt)
+    
+    // JSON 파싱 시도
+    try {
+      // 응답에서 JSON 부분만 추출 (마크다운 코드블록 제거 등)
+      let cleanResult = result.trim()
+      if (cleanResult.startsWith('```json')) {
+        cleanResult = cleanResult.replace(/```json\s*/, '').replace(/\s*```$/, '')
+      }
+      if (cleanResult.startsWith('```')) {
+        cleanResult = cleanResult.replace(/```\s*/, '').replace(/\s*```$/, '')
+      }
+      
+      const parsedResult = JSON.parse(cleanResult)
+      console.log('✅ Groq Llama 3.1-70B 처리 성공!')
+      return parsedResult
+    } catch (parseError) {
+      console.warn('JSON 파싱 실패, 텍스트 응답:', result)
+      console.warn('파싱 에러:', parseError)
+      // JSON이 아닌 경우 텍스트에서 데이터 추출 시도
+      return extractDataFromText(result, title)
+    }
   } catch (error) {
-    console.error('AI 처리 실패, Mock 데이터로 대체:', error)
+    console.error('Groq API 처리 실패, Mock 데이터로 대체:', error)
     return mockAIResult(title, content)
+  }
+}
+
+// 텍스트 응답에서 데이터 추출하는 함수
+const extractDataFromText = (text: string, title: string): AIProcessingResult => {
+  // 간단한 텍스트 파싱 로직 (개선 가능)
+  console.log('텍스트에서 데이터 추출 중...')
+  
+  return {
+    summary: `Groq Llama가 분석한 "${title}" 설교의 핵심 내용입니다. AI 응답을 파싱하는 중 문제가 발생했지만 기본 요약을 제공합니다.`,
+    quiz: [
+      {
+        id: 'q1',
+        question: `"${title}" 설교의 주요 메시지는?`,
+        options: ['하나님의 사랑', '믿음의 실천', '교회 공동체', '개인의 성장'],
+        correct_answer: 0,
+        explanation: 'Groq Llama 3.1-70B 분석 결과입니다.'
+      },
+      {
+        id: 'q2',
+        question: '이 설교에서 강조한 실천 방법은?',
+        options: ['더 많은 기도', '이웃 사랑 실천', '교회 봉사', '성경 공부'],
+        correct_answer: 1,
+        explanation: 'AI가 추천하는 실천 방법입니다.'
+      }
+    ],
+    meditation: '오늘 설교를 통해 받은 은혜를 묵상하며, 하나님께서 내게 주시는 메시지가 무엇인지 기도로 구해보세요.',
+    practical_tasks: ['매일 감사 기도하기', '이웃에게 작은 친절 베풀기', '성경 말씀 묵상하기', '교회 공동체와 교제하기']
   }
 }

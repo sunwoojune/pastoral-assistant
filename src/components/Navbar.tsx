@@ -32,18 +32,23 @@ function LogoutButton() {
 }
 
 const navigation = [
-  { name: '대시보드', href: '/dashboard', icon: '🏠' },
-  { name: '설교 관리', href: '/sermons', icon: '📖' },
-  { name: '메시지 관리', href: '/messages', icon: '📱' },
-  { name: '교인 돌봄', href: '/members', icon: '👥' },
-  { name: '심방 기록', href: '/visits', icon: '🏠' },
-  { name: '기도제목', href: '/prayers', icon: '🙏' },
-  { name: '리포트', href: '/reports', icon: '📊' },
+  { name: '대시보드', href: '/dashboard', paths: ['/dashboard'] },
+  { name: '설교 관리', href: '/dashboard/sermons', paths: ['/dashboard/sermons'] },
+  { name: '교인 관리', href: '/dashboard/members', paths: ['/dashboard/members'] },
+  { name: '메시지 관리', href: '/dashboard/messages/dashboard', paths: ['/dashboard/messages'] },
+  { name: '심방 기록', href: '/dashboard/visits', paths: ['/dashboard/visits'] },
+  { name: '기도제목', href: '/dashboard/prayers', paths: ['/dashboard/prayers'] },
+  { name: '리포트', href: '/dashboard/reports', paths: ['/dashboard/reports'] },
 ]
 
 export default function Navbar() {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  // 현재 경로가 해당 탭의 경로들 중 하나에 포함되는지 확인
+  const isActivePath = (paths: string[]) => {
+    return paths.some(path => pathname.startsWith(path))
+  }
 
   return (
     <nav className="bg-white shadow-lg border-b">
@@ -61,12 +66,11 @@ export default function Navbar() {
                   key={item.name}
                   href={item.href}
                   className={`${
-                    pathname === item.href
-                      ? 'border-primary-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200`}
+                    isActivePath(item.paths)
+                      ? 'border-primary-500 text-gray-900 bg-primary-50'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 hover:bg-gray-50'
+                  } inline-flex items-center px-3 pt-1 pb-1 border-b-2 text-sm font-medium transition-all duration-200 rounded-t-md`}
                 >
-                  <span className="mr-2">{item.icon}</span>
                   {item.name}
                 </Link>
               ))}
@@ -114,13 +118,12 @@ export default function Navbar() {
               key={item.name}
               href={item.href}
               className={`${
-                pathname === item.href
+                isActivePath(item.paths)
                   ? 'bg-primary-50 border-primary-500 text-primary-700'
                   : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
               } block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200`}
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="mr-2">{item.icon}</span>
               {item.name}
             </Link>
           ))}

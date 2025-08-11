@@ -85,13 +85,13 @@ export default function MembersPage() {
         </div>
         <div className="flex space-x-3">
           <Link
-            href="/members/import"
+            href="/dashboard/members/import"
             className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors duration-200"
           >
             📋 엑셀 업로드
           </Link>
           <Link
-            href="/members/new"
+            href="/dashboard/members/new"
             className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors duration-200"
           >
             새 교인 추가
@@ -222,7 +222,7 @@ export default function MembersPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">교인이 없습니다</h3>
             <p className="text-gray-600 mb-4">첫 번째 교인을 추가해보세요.</p>
             <Link
-              href="/members/new"
+              href="/dashboard/members/new"
               className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors duration-200"
             >
               교인 추가하기
@@ -301,7 +301,7 @@ export default function MembersPage() {
 
                     <div className="ml-4 flex items-center space-x-2">
                       <Link
-                        href={`/members/${member.id}/edit`}
+                        href={`/dashboard/members/${member.id}/edit`}
                         className="text-gray-400 hover:text-gray-600"
                         title="수정"
                       >

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { processSermonWithAI } from '@/lib/openai'
 import { SermonContent } from '@/types/ministry-content'
 import { MessageQueueItem } from '@/types/kakao-api'
+import { sermonStorage } from '@/lib/sermon-storage'
 
 export default function NewSermonPage() {
   const router = useRouter()
@@ -56,27 +57,42 @@ export default function NewSermonPage() {
   }
 
   const handleSave = () => {
-    // localStorage에 저장 (실제로는 서버 API 호출)
-    const newSermon: SermonContent = {
-      id: `sermon-${Date.now()}`,
+    // sermonStorage를 사용해서 저장
+    const sermonData = {
+      title: formData.title,
+      scripture: formData.scripture,
+      date: formData.date,
+      content: formData.original_content,
+      keywords: [], // AI 처리 시 키워드도 추가 가능
+      occasion: '주일예배', // 기본값
+      summary: aiResult?.summary || ''
+    }
+
+    // 설교 저장
+    const savedSermon = sermonStorage.create(sermonData)
+    console.log('✅ 설교 저장 완료:', savedSermon)
+
+    // AI 처리된 설교는 별도 저장소에도 저장 (ministry content용)
+    const ministrySermon: SermonContent = {
+      id: savedSermon.id,
       ...formData,
       ...aiResult,
       is_processed: true,
       is_sent: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_id: 'current-user'
+      created_at: savedSermon.created_at,
+      updated_at: savedSermon.updated_at,
+      user_id: savedSermon.user_id
     }
 
-    // 기존 설교 목록에 추가
-    const existingSermons = JSON.parse(localStorage.getItem('shepherd-care-ministry-sermons') || '[]')
-    const updatedSermons = [newSermon, ...existingSermons]
-    localStorage.setItem('shepherd-care-ministry-sermons', JSON.stringify(updatedSermons))
+    // Ministry content 저장소에도 저장
+    const existingMinistrySermons = JSON.parse(localStorage.getItem('shepherd-care-ministry-sermons') || '[]')
+    const updatedMinistrySermons = [ministrySermon, ...existingMinistrySermons]
+    localStorage.setItem('shepherd-care-ministry-sermons', JSON.stringify(updatedMinistrySermons))
 
     // 주간 메시지 자동 생성 및 예약
     try {
       const { generateWeeklyMessages, saveScheduledMessages } = require('@/lib/message-generator')
-      const weeklyMessages = generateWeeklyMessages(newSermon)
+      const weeklyMessages = generateWeeklyMessages(ministrySermon)
       saveScheduledMessages(weeklyMessages)
       
       console.log(`✅ 주간 메시지 ${weeklyMessages.length}개가 예약되었습니다.`)
@@ -100,7 +116,7 @@ export default function NewSermonPage() {
     setStep('complete')
     
     setTimeout(() => {
-      router.push('/sermons')
+      router.push('/dashboard/sermons')
     }, 2000)
   }
 
@@ -218,7 +234,7 @@ export default function NewSermonPage() {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => router.push('/sermons')}
+              onClick={() => router.push('/dashboard/sermons')}
               className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors duration-200"
             >
               취소

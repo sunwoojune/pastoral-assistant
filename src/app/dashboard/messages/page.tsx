@@ -99,7 +99,7 @@ export default function MessagesPage() {
           </p>
         </div>
         <Link
-          href="/messages/dashboard"
+          href="/dashboard/messages/dashboard"
           className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
         >
           발송 대시보드
